@@ -1,0 +1,2 @@
+bdd-for-c.h is the c unittest framework.
+test_xxx.c is all the testcases.

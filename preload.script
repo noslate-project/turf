@@ -1,0 +1,6 @@
+{
+  global: 
+    __libc_start_main;
+    load_turfphd;
+  local: *;
+};

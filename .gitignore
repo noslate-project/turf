@@ -1,0 +1,6 @@
+build/
+turf
+
+*.o
+*.a
+*.so

@@ -172,6 +172,7 @@ test_%: build/test/test_%
 	@echo action
 	@$(CHKMEM) ./$< || exit 1
 
+test: test-prepare
 test: export TURF_WORKDIR=$(WORKDIR)
 test: subd_build $(TEST_BIN)
 	@for case in $(TEST_BIN); do \

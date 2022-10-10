@@ -1,3 +1,4 @@
+include ../build/Makefiles/toolchain.mk
 
 # arch depend
 UNAME := $(shell uname)
@@ -93,6 +94,14 @@ all: $(TARGET)
 else
 all: $(TARGET) $(PRELOAD)
 endif
+
+BUILDTYPE ?= Release
+
+test-prepare:
+	mkdir -p $(WORKDIR)/runtime/nodejs-v16/bin
+	rm -f $(WORKDIR)/runtime/nodejs-v16/bin/node; ln -s $(BUILD_PROJ_DIR)/out/$(BUILDTYPE)/node $(WORKDIR)/runtime/nodejs-v16/bin/node
+	mkdir -p $(WORKDIR)/runtime/aworker/bin
+	rm -f $(WORKDIR)/runtime/aworker/bin/aworker; ln -s $(BUILD_PROJ_DIR)/out/$(BUILDTYPE)/aworker $(WORKDIR)/runtime/aworker/bin/aworker
 
 .PHONY: clean all subd_build subd_clean cleanall distclean test
 .SUFFIXES:

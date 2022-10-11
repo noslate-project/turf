@@ -9,7 +9,7 @@ spec("turf.state") {
     tf_stat stat = {0};
 
     // do a little math
-    system("time echo \"scale=1000; 4*a(1)\" | bc -l -q");
+    system("echo \"scale=1000; 4*a(1)\" | bc -l -q");
 
     // get pid_stat
     pid_t pid = getpid();

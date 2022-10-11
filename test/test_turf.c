@@ -8,7 +8,7 @@ spec("turf") {
     struct tf_cli cfg = {0};
     char dest[1024];
 
-    shl_path3(dest, 1024, getenv("TURF_WORKDIR"), "../bundle", "pi");
+    shl_path3(dest, 1024, getenv("TURF_WORKDIR"), "/bundle", "pi");
     puts(dest);
 
     chdir(dest);

@@ -1,0 +1,1 @@
+{"ociVersion":"0.0.1-dev","process":{"terminal":false,"user":{"uid":-2,"gid":-2},"args":["cat","index.js"],"env":["PATH=/usr/bin:/bin","TERM=xterm"],"noNewPrivileges":true},"root":{"path":"rootfs","readonly":true},"linux":{"resources":{"memory":{"limit":134217728},"cpu":{"shares":1024,"quota":1000000,"period":1000000}}},"turf":{"runtime":"cat","code":"code","seed":false}}

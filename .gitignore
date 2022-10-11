@@ -4,3 +4,8 @@ turf
 *.o
 *.a
 *.so
+
+workdir/overlay/*
+!workdir/overlay/.gitignore
+workdir/sandbox/*
+!workdir/sandbox/.gitignore

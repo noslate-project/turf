@@ -4,10 +4,10 @@
         "terminal": false,
         "user": {
             "uid": -2,
-            "gid": -2 
+            "gid": -2
         },
         "args": [
-            "node",
+            "cat",
             "index.js"
         ],
         "env": [
@@ -23,7 +23,7 @@
     "linux": {
         "resources": {
             "memory": {
-                "limit": 134217728 
+                "limit": 134217728
             },
             "cpu": {
                 "shares": 1024,
@@ -45,8 +45,8 @@
         }
     },
     "turf": {
-        "runtime": "aworker",
+        "runtime": "cat",
         "code": "code",
-        "seed": false 
+        "seed": false
     }
 }

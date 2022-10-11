@@ -10,7 +10,6 @@ ifeq ($(UNAME), Linux)
 CFLAGS += -ffunction-sections -fdata-sections
 #LDFLAGS += -Wl,--gc-sections -Wl,--print-gc-sections
 LDFLAGS += -Wl,--gc-sections -Wl,--as-needed
-WORKDIR = $(shell pwd)/workdir/linux_x64
 CHKMEM = valgrind --leak-check=full -q --error-exitcode=1
 endif
 
@@ -18,8 +17,8 @@ ifeq ($(UNAME), Darwin)
 CFLAGS += -ffunction-sections -fdata-sections -std=c99
 LDFLAGS += -Wl,-dead_strip
 TEST_ENTRY = -e_ut_main
-WORKDIR = $(shell pwd)/workdir/macos_x64
 endif
+WORKDIR = $(shell pwd)/workdir
 
 ifdef DEBUG
 	DEP_DEBUG=-DDEBUG=1

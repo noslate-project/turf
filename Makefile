@@ -1,3 +1,4 @@
+BUILDTYPE ?= Release
 
 # arch depend
 UNAME := $(shell uname)
@@ -183,7 +184,12 @@ distclean: cleanall
 cleanall: subd_clean
 	@rm -rf build turf
 
+include ../build/Makefiles/toolchain.mk
+
 SOURCE_FILES=$(shell find include src test -type f \
 			-name '*.c' -or -name '*.h')
 format: $(SOURCE_FILES)
-	clang-format -i --style=file $(SOURCE_FILES)
+	$(CLANG_FORMAT) -i --style=file $(SOURCE_FILES)
+
+lint: $(SOURCE_FILES)
+	@echo "Skipped"

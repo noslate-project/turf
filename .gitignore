@@ -6,6 +6,6 @@ turf
 *.so
 
 workdir/overlay/*
-!workdir/overlay/.gitignore
+!workdir/overlay/.gitkeep
 workdir/sandbox/*
-!workdir/sandbox/.gitignore
+!workdir/sandbox/.gitkeep

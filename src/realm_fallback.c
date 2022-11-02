@@ -72,7 +72,7 @@ static int fallback_run(struct rlm_t* t) {
 #if 0
         char buf[32];
         int rc = snprintf(buf, 32, "%u", child_pid);
-        rc = write_proc("/sys/fs/cgroup/memory/turf/app-1/cgroup.procs", buf, rc); 
+        rc = write_proc("/sys/fs/cgroup/memory/turf/app-1/cgroup.procs", buf, rc);
         rc = write_proc("/sys/fs/cgroup/cpu/turf/app-1/cgroup.procs", buf, rc);
 #endif
     // TBD: namespace cfg
@@ -157,7 +157,7 @@ static int fallback_run(struct rlm_t* t) {
     close_fds(keep_fds, k);
   }
 
-#if 0  // setuid needs CAP_SYS_ADMIN 
+#if 0  // setuid needs CAP_SYS_ADMIN
     if (setresuid(0,0,0)!=0) {
         die("setresuid");
     }
@@ -196,10 +196,12 @@ static int fallback_run(struct rlm_t* t) {
   }
 #endif
   info("now go sandbox");
-  execve(t->cfg.binary, t->cfg.argv, t->cfg.env);
-
-  // should not return
-  return 0;
+  int rc = execve(t->cfg.binary, t->cfg.argv, t->cfg.env);
+  if (rc) {
+    die("execve: errno(%d)", errno);
+  } else {
+    die("execve: return");
+  }
 }
 
 static int fallback_fork(struct rlm_t* t) {
@@ -236,7 +238,7 @@ static int fallback_fork(struct rlm_t* t) {
 #if 0
         char buf[32];
         int rc = snprintf(buf, 32, "%u", child_pid);
-        rc = write_proc("/sys/fs/cgroup/memory/turf/app-1/cgroup.procs", buf, rc); 
+        rc = write_proc("/sys/fs/cgroup/memory/turf/app-1/cgroup.procs", buf, rc);
         rc = write_proc("/sys/fs/cgroup/cpu/turf/app-1/cgroup.procs", buf, rc);
 #endif
     // TBD: namespace cfg
@@ -305,10 +307,10 @@ static int fallback_fork(struct rlm_t* t) {
 #if 0
     // close fds
     {
-        int keep_fds[128]; // reserved max 
+        int keep_fds[128]; // reserved max
         int k = 0;
 
-        // stdin, out, err 
+        // stdin, out, err
         keep_fds[k++] = 0;
         keep_fds[k++] = 1;
         keep_fds[k++] = 2;
@@ -317,7 +319,7 @@ static int fallback_fork(struct rlm_t* t) {
     }
 #endif
 
-#if 0  // setuid needs CAP_SYS_ADMIN 
+#if 0  // setuid needs CAP_SYS_ADMIN
     if (setresuid(0,0,0)!=0) {
         die("setresuid");
     }

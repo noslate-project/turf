@@ -129,10 +129,10 @@ static void daemon_on_read(struct sck_loop* loop,
     }
   }
 
-#if 0 
-    for (i=0; i<argc; i++) { 
-        dprint("%s", argv[i]);
-    }
+#if 0
+  for (i = 0; i < argc; i++) {
+    dprint("%s", argv[i]);
+  }
 #endif
 
   tf_cli cli = {0};

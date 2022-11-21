@@ -268,6 +268,7 @@ static int cli_create(tf_cli* cli, int argc, char* const argv[]) {
         break;
 
       default:
+        error("unknown cmd %d", opt);
         set_errno(EINVAL);
         return -1;
     };
@@ -707,8 +708,10 @@ static int cli_remote(tf_cli* cli, int argc, char* const argv[]) {
                      "just like the same command in runc mode.\n"
                      "\n"
                      "COMMANDS supported in C/S mode\n"
+                     "  create               Create a sandbox\n"
                      "  start                Start a sandbox\n"
-                     "  stop                 Stop a sandbox\n";
+                     "  stop                 Stop a sandbox\n"
+                     "  delete               Delete a sandbox\n";
 
   int opt;
   while ((opt = getopt_long(argc, argv, so, lo, NULL)) > 0) {
@@ -741,12 +744,20 @@ static int cli_remote(tf_cli* cli, int argc, char* const argv[]) {
   dprint("cmd %s", cmd);
 
   // TBD: we should check all the parameters before remote call.
-  if (strcmp(cmd, "start") == 0) {
+  if (strcmp(cmd, "create") == 0) {
+    cli->cmd = TURF_CLI_CREATE;
+    cli->argc = c;
+    cli->argv = (char**)v;
+  } else if (strcmp(cmd, "start") == 0) {
     cli->cmd = TURF_CLI_START;
     cli->argc = c;
     cli->argv = (char**)v;
   } else if (strcmp(cmd, "stop") == 0) {
     cli->cmd = TURF_CLI_STOP;
+    cli->argc = c;
+    cli->argv = (char**)v;
+  } else if (strcmp(cmd, "delete") == 0) {
+    cli->cmd = TURF_CLI_REMOVE;
     cli->argc = c;
     cli->argv = (char**)v;
   } else {
@@ -816,12 +827,17 @@ int cli_parse_remote(tf_cli* cli, int argc, char* const argv[]) {
   int c = argc - 1;
   char* const* v = argv + 1;
 
-  if (strcmp(cmd, "start") == 0) {
+  if (strcmp(cmd, "create") == 0) {
+    rc = cli_create(cli, c, v);
+  } else if (strcmp(cmd, "start") == 0) {
     rc = cli_start(cli, c, v);
   } else if (strcmp(cmd, "stop") == 0) {
     rc = cli_stop(cli, c, v);
+  } else if (strcmp(cmd, "delete") == 0) {
+    rc = cli_delete(cli, c, v);
   } else {
     set_errno(ENOTSUP);
+    error("unknown command %s", cmd);
     rc = -1;
   }
 

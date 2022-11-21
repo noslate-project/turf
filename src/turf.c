@@ -419,11 +419,25 @@ static int tf_do_list(struct tf_cli* cfg) {
 
 // api for create a turf realm
 static int tf_do_create(struct tf_cli* cfg) {
-  const char* conf = "config.json";
   const char* name = cfg->sandbox_name;
   bool success = 0;
 
-  struct oci_spec* spec = oci_spec_load(conf);
+  char bundle_config_path[TURF_MAX_PATH_LEN];
+  char bundle_code_path[TURF_MAX_PATH_LEN];
+  if (cfg->bundle_path) {
+    shl_path2(bundle_config_path,
+              sizeof(bundle_config_path),
+              cfg->bundle_path,
+              "config.json");
+    shl_path2(
+        bundle_code_path, sizeof(bundle_code_path), cfg->bundle_path, "code");
+  } else {
+    shl_path2(
+        bundle_config_path, sizeof(bundle_config_path), "./", "config.json");
+    shl_path2(bundle_code_path, sizeof(bundle_code_path), "./", "code");
+  }
+
+  struct oci_spec* spec = oci_spec_load(bundle_config_path);
   if (!spec) {
     error("spec not found");
     set_errno(EINVAL);
@@ -461,11 +475,11 @@ static int tf_do_create(struct tf_cli* cfg) {
   // copy config
   char dest[TURF_MAX_PATH_LEN];
   shl_path2(dest, sizeof(dest), tfd_path_sandbox(), name);
-  shl_cp("config.json", dest, "config.json");
+  shl_cp(bundle_config_path, dest, "config.json");
 
   // copy code
   shl_path2(dest, sizeof(dest), tfd_path_overlay(), name);
-  shl_cp("code", dest, "code");
+  shl_cp(bundle_code_path, dest, "code");
 
   success = 1;
 

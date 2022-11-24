@@ -109,7 +109,7 @@ static void daemon_on_read(struct sck_loop* loop,
   }
 
   int size = hdr.msg_size;
-  char* msg = (char*)calloc(1, size);
+  char* msg = (char*)calloc(1, size + 1);
   rc = sck_read(fd, msg, size);
   if (rc != size) {
     dprint("read failed, size (%d) rc (%d)", rc, size);

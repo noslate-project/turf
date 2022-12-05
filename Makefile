@@ -5,10 +5,10 @@ UNAME := $(shell uname)
 
 CC ?= gcc
 
-CFLAGS = -std=c99 -Wall -Wno-unused-function -fvisibility=hidden -g -O2 -fPIC
+CFLAGS = -Wall -Wno-unused-function -fvisibility=hidden -g -O2 -fPIC
 
 ifeq ($(UNAME), Linux)
-CFLAGS += -ffunction-sections -fdata-sections
+CFLAGS += -ffunction-sections -fdata-sections -std=gnu99
 #LDFLAGS += -Wl,--gc-sections -Wl,--print-gc-sections
 LDFLAGS += -Wl,--gc-sections -Wl,--as-needed
 CHKMEM = valgrind --leak-check=full -q --error-exitcode=1
@@ -85,7 +85,7 @@ TEST_CASE := $(wildcard test/*.c)
 TEST_BIN := $(TEST_CASE:%.c=build/%)
 TEST_OBJ := $(SRC:src/%.c=build/test/%.o) $(SPEC_OBJ)
 TEST_DEP := $(TEST_OBJ:%.o=%.d) $(TEST_BIN:%=%.d)
-TEST_CFLAGS := -g -O0 -fPIC -fprofile-arcs -ftest-coverage -Wall -std=c99
+TEST_CFLAGS := $(CFLAGS) -g -O0 -fPIC -fprofile-arcs -ftest-coverage -Wall
 TEST_LDFLAGS := $(SUBD:%=-Ldeps/%/) $(SUBD:%=-l%) $(TEST_ENTRY) -ldl
 
 ifeq ($(UNAME), Darwin)

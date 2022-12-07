@@ -3,6 +3,10 @@
 #include "realm.h"
 #include "spec.h"
 
+bool timeval_cmp(struct timeval lhs, struct timeval rhs) {
+  return lhs.tv_sec == rhs.tv_sec && lhs.tv_usec == rhs.tv_usec;
+}
+
 spec("turf.oci") {
   it("oci.spec.json") {
     int rc;
@@ -108,8 +112,8 @@ spec("turf.oci") {
     check(strcmp(state2->bundle, "/tmp/oci.state.test.dir/") == 0);
     check(state2->pid == r_pid);
     check(state2->status == r_state);
-    check(memcmp(&state2->created, &r_now, sizeof(r_now)) == 0);
-    check(memcmp(&state2->stopped, &r_now, sizeof(r_now)) == 0);
+    check(timeval_cmp(state2->created, r_now));
+    check(timeval_cmp(state2->stopped, r_now));
 
     // free resrc
     oci_state_free(state);

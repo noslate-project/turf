@@ -47,15 +47,7 @@ static int fallback_run(struct rlm_t* t) {
     die("setpgid");
   }
 
-  /* execve afterwards, vfork()
-   */
-#if defined(__linux__)
-  int clone_flag = SIGCHLD;
-  child_pid = syscall(__NR_clone, clone_flag, NULL);
-#else
-  child_pid = vfork();
-#endif
-
+  child_pid = fork();
   if (child_pid) {
     /*
      * go parent.

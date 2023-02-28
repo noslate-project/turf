@@ -172,11 +172,7 @@ int _API sysadmin_run(struct rlm_t* t) {
     die("setpgid");
   }
 
-  /* execve afterwards, vfork()
-   */
-  int clone_flag = CLONE_NEWPID | SIGCHLD;
-  child_pid = syscall(__NR_clone, clone_flag, NULL);
-
+  child_pid = fork();
   if (child_pid) {
     /*
      * go parent.

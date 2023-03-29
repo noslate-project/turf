@@ -1,6 +1,21 @@
 #include "misc.h"
 #include <sys/time.h>  // gettimeofday()
 
+static bool debug_once = false;
+static bool turf_debug = false;
+static void turf_init_debug() {
+  if (getenv("TURF_DEBUG")) {
+    turf_debug = true;
+  }
+}
+
+bool turf_debug_enabled() {
+  if (!debug_once) {
+    turf_init_debug();
+  }
+  return turf_debug;
+}
+
 // return a  formated string, should use free() to release.
 int _API xasprintf(char** str, const char* fmt, ...) {
   va_list args_list;
@@ -201,7 +216,6 @@ int _API proc_pid_max(int* pid_max) {
   return 0;
 }
 
-#if DEBUG
 void _hexbuf(const char* buf, int size) {
   int i;
   for (i = 0; i < size; i++) {
@@ -214,7 +228,6 @@ void _hexbuf(const char* buf, int size) {
   }
   fprintf(stderr, "\n");
 }
-#endif
 
 void _API rusage_dump(const struct rusage* ru) {
   info("rusage info:\n"

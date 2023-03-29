@@ -81,14 +81,15 @@
 #define info(fmt, ...) logfmt(LOG_INFO, fmt "\n", ##__VA_ARGS__)
 #define die_oom() die("Out of memory")
 
-#ifdef DEBUG
-#define dprint(fmt, ...) logfmt(LOG_DEBUG, fmt "\n", ##__VA_ARGS__)
+#define dprint(fmt, ...)                                                       \
+  if (turf_debug_enabled()) {                                                  \
+    logfmt(LOG_DEBUG, fmt "\n", ##__VA_ARGS__);                                \
+  }
 void _hexbuf(const char*, int);
-#define hexbuf(...) _hexbuf(__VA_ARGS__)
-#else
-#define dprint(fmt, ...)
-#define hexbuf(...)
-#endif
+#define hexbuf(...)                                                            \
+  if (turf_debug_enabled()) {                                                  \
+    _hexbuf(__VA_ARGS__);                                                      \
+  }
 
 // TURF constants, LEN includes tail '\0'.
 // The max length of a string size turf can handle.
@@ -110,6 +111,8 @@ void _hexbuf(const char*, int);
 #define TURF_SBX_MAX_LEN (254)
 
 #define TF_STR_MAGIC DEF_MAGIC('S', 'T', 'R', 'T')
+
+bool turf_debug_enabled();
 
 // string object
 struct str_t {

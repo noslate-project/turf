@@ -312,7 +312,7 @@ static int tf_seed_msg(int type, char* buff, size_t size, void* data) {
 
     case TIPC_MSG_FORK_RSP: {
       struct rlm_t r = {0};
-      int rc = tipc_dec_fork_rsp(&r, buff, size);
+      tipc_dec_fork_rsp(&r, buff, size);
 
       struct turf_t* tf = tf_find_realm(r.cfg.name);
       if (!tf) {

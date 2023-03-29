@@ -50,4 +50,6 @@ int _API tipc_dec_fork_req(struct rlm_t* realm, char* buff, size_t nsize);
 int _API tipc_enc_fork_rsp(char* buff, size_t nsize, struct rlm_t* realm);
 int _API tipc_dec_fork_rsp(struct rlm_t* realm, char* buff, size_t nsize);
 
+const char* tipc_msg_type(int type);
+
 #endif  // _TURF_IPC_H_

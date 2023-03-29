@@ -49,57 +49,6 @@ static int sck_set_nonblock(int fd) {
   return 0;
 }
 
-static int sck_set_sndbuf(int fd, size_t size) {
-  int rc;
-  rc = setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size));
-  if (rc < 0) {
-    return -1;
-  }
-  return 0;
-}
-
-static int sck_set_rcvbuf(int fd, size_t size) {
-  int rc;
-  rc = setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size));
-  if (rc < 0) {
-    return -1;
-  }
-  return 0;
-}
-
-static int sck_set_timeo(int fd, int opt, uint64_t ms) {
-  int rc;
-  struct timeval tv;
-
-  tv.tv_sec = ms / 1000;
-  tv.tv_usec = (ms % 1000) * 1000;
-  rc = setsockopt(fd, SOL_SOCKET, opt, &tv, sizeof(tv));
-  if (rc < 0) {
-    return -1;
-  }
-  return 0;
-}
-
-static int sck_set_sndtimeo(int fd, long long ms) {
-  return sck_set_timeo(fd, SO_SNDTIMEO, ms);
-}
-
-static int sck_set_rcvtimeo(int fd, long long ms) {
-  return sck_set_timeo(fd, SO_RCVTIMEO, ms);
-}
-
-#if defined(__APPLE__)
-static int sck_set_nosigpipe(int fd) {
-  int rc;
-  int yes = 1;
-  rc = setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(yes));
-  if (rc < 0) {
-    return -1;
-  }
-  return 0;
-}
-#endif
-
 int _API sck_unix_socket() {
   int fd = 0;
   int rc = 0;

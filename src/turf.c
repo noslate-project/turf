@@ -312,13 +312,14 @@ static int tf_seed_msg(int type, char* buff, size_t size, void* data) {
 
     case TIPC_MSG_FORK_RSP: {
       struct rlm_t r = {0};
-      int rc = tipc_dec_fork_rsp(&r, buff, size);
+      tipc_dec_fork_rsp(&r, buff, size);
 
       struct turf_t* tf = tf_find_realm(r.cfg.name);
       if (!tf) {
         error("tf %s not found.", r.cfg.name);
         break;
       }
+      dprint("fork rsp: %s %d.", r.cfg.name, r.st.child_pid);
       tf->realm->st.child_pid = r.st.child_pid;
       tf->realm->st.state = RLM_STATE_RUNNING;
 
@@ -992,12 +993,6 @@ static int tf_do_runtime(struct tf_cli* cfg) {
   }
   closedir(dir);
   return 0;
-}
-
-// turf stats info
-static int tf_do_events(struct tf_cli* cfg) {
-  set_errno(ENOTSUP);
-  return -1;
 }
 
 // unified entry for turf runc-mode.

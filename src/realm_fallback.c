@@ -1,9 +1,5 @@
 #include "realm.h"
 
-static int fallback_enter(struct rlm_t* t) {
-  return 0;
-}
-
 static int close_fds(int* inheritable_fds, size_t size) {
   const char* kFdPath = "/proc/self/fd";
 

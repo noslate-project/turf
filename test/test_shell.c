@@ -2,8 +2,6 @@
 #include "shell.h"
 
 spec("turf.shell") {
-  int rc;
-
   it("environ.home") {
     const char* home = env_home();
     check(home);

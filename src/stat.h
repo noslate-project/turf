@@ -154,5 +154,6 @@ struct tf_stat {
 typedef struct tf_stat tf_stat;
 
 int _API pid_stat(pid_t pid, tf_stat* stat);
+void _API dump_stat(tf_stat* stat);
 
 #endif  // _TURF_STAT_H_

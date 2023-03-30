@@ -251,7 +251,7 @@ int twf_msg(int type, char* buff, size_t size, void* data) {
       }
 
       pid_t child = rlm_fork(&m_rlm);
-      dprint("rlm_fork = %d", child);
+      dprint("rlm_fork = %d %s", child, m_rlm.cfg.name);
       if (child) {  // parent
         twf_inform_fork_rsp();
         rlm_free_inner(&m_rlm);
@@ -271,17 +271,8 @@ static void turf_warmfork_wait(int* prc, int* pargc, char*** pargv) {
 
   // the loop
   while (1) {
-    char buf[4096];
-
-    // we block the thread until we got any msg from turfd.
-    size_t l = read(m_fd, buf, 4096);
-    if (l < 0) {
-      continue;
-    }
-    dprint("recv %ld from turfd", l);
-
-    // msg decode
-    int rc = tipc_decode(buf, l, twf_msg, NULL);
+    int rc = tipc_read(m_fd, twf_msg, NULL);
+    info("%s rc=%d", __func__, rc);
 
     // break in child process
     if (rc == -999) {

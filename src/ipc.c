@@ -85,9 +85,6 @@
   struct tipc_hdr* _hdr = (struct tipc_hdr*)_cur;                              \
   _cur += sizeof(struct tipc_hdr);                                             \
   _left -= sizeof(struct tipc_hdr);                                            \
-  if (_hdr->magic != TIPC_HDR_MAGIC) {                                         \
-    _ERROR_BREAK(EBADMSG);                                                     \
-  }                                                                            \
   if (_hdr->checksum != _MSG_CRC()) {                                          \
     _ERROR_BREAK(EBADMSG);                                                     \
   }
@@ -184,6 +181,32 @@ const char* tipc_msg_type(int type) {
   }
 
   return "unknown";
+}
+
+#define HDR_LEN (sizeof(struct tipc_hdr))
+
+int _API tipc_read(int fd, TIPC_DecodeCB* cb, void* data) {
+  char msg[4096];
+  struct tipc_hdr* hdr = (struct tipc_hdr *)msg;
+  int rc;
+  rc = read(fd, msg, HDR_LEN);
+  if (rc < 0) {
+    return rc;
+  }
+  info("%s rc=%d", __func__, rc);
+
+  if (hdr->magic != TIPC_HDR_MAGIC) {
+    set_errno(EBADMSG);
+    error("IPC: codec error %d in %s:%d", errno, __func__, __LINE__);
+    return -1;
+  }
+
+  rc = read(fd, msg + HDR_LEN, hdr->length - HDR_LEN);
+  if (rc < 0) {
+    return rc;
+  }
+
+  return tipc_decode(msg, hdr->length, cb, data);
 }
 
 int _API tipc_decode(char* buff, size_t nsize, TIPC_DecodeCB* cb, void* data) {

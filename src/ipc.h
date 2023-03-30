@@ -28,8 +28,7 @@ struct tipc_hdr {
   uint32_t checksum;  // crc32, without magic and checksum
   uint8_t type;       // TIPC_MSG_TYPE
   uint8_t padding;    // must be ZERO
-  uint16_t length;    // whole msg length, include header
-  char msg[0];        // begin the payload
+  uint16_t length;    // whole msg length, excluding header
 };                    // 16 bytes
 
 #pragma pack(pop)
@@ -38,6 +37,7 @@ const char* tipc_msg_type(int type);
 
 // callback for TIPC msg decoder
 typedef int(TIPC_DecodeCB)(int type, char* buff, size_t nsize, void* data);
+int _API tipc_read(int fd, TIPC_DecodeCB* cb, void* data);
 int _API tipc_decode(char* buff, size_t nsize, TIPC_DecodeCB* cb, void* data);
 
 // TIPC_MSG_SEED_READY

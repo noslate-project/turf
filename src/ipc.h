@@ -28,7 +28,7 @@ struct tipc_hdr {
   uint32_t checksum;  // crc32, without magic and checksum
   uint8_t type;       // TIPC_MSG_TYPE
   uint8_t padding;    // must be ZERO
-  uint16_t length;    // whole msg length, excluding header
+  uint16_t length;    // whole msg length, including header
 };                    // 16 bytes
 
 #pragma pack(pop)

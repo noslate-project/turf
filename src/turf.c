@@ -2,7 +2,7 @@
  */
 
 #include "turf.h"
-#include "ipc.h"  // tipc_decode
+#include "ipc.h"  // tipc_read
 #include "oci.h"
 #include "realm.h"
 #include "shell.h"
@@ -319,6 +319,7 @@ static int tf_seed_msg(int type, char* buff, size_t size, void* data) {
         error("tf %s not found.", r.cfg.name);
         break;
       }
+      dprint("%s: rlm %p %d running", __func__, tf, r.st.child_pid);
       tf->realm->st.child_pid = r.st.child_pid;
       tf->realm->st.state = RLM_STATE_RUNNING;
 
@@ -340,15 +341,8 @@ static void tf_seed_on_read(struct sck_loop* loop,
                             int fd,
                             void* clientData,
                             int mask) {
-  char msg[4096];
-  int rc;
-  rc = read(fd, msg, 4096);
-  if (rc < 0) {
-    perror("tf_seed_on_read");
-  }
-  info("rc=%d", rc);
-
-  tipc_decode(msg, rc, tf_seed_msg, clientData);
+  int rc = tipc_read(fd, tf_seed_msg, clientData);
+  info("%s rc=%d", __func__, rc);
 }
 
 /* APIs for runc-mode func.
@@ -585,6 +579,7 @@ static int tf_do_start(struct tf_cli* cfg) {
 
   // new turf_t
   struct turf_t* tf = tf_new(name);
+  dprint("%s: new rlm %s %p", __func__, name, tf);
   struct rlm_t* rlm = tf->realm;
 
   shl_path3(dest, sizeof(dest), tfd_path_overlay(), name, code);

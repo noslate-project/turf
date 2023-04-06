@@ -187,7 +187,7 @@ const char* tipc_msg_type(int type) {
 
 int _API tipc_read(int fd, TIPC_DecodeCB* cb, void* data) {
   char msg[4096];
-  struct tipc_hdr* hdr = (struct tipc_hdr *)msg;
+  struct tipc_hdr* hdr = (struct tipc_hdr*)msg;
   int rc;
   rc = read(fd, msg, HDR_LEN);
   if (rc < 0) {

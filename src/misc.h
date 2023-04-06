@@ -58,7 +58,25 @@
 #define LOG_DEBUG 'D'
 
 #define logfmt(x, fmt, ...)                                                    \
-  fprintf(stderr, "turf[%d] %c: " fmt, getpid(), x, ##__VA_ARGS__)
+  {                                                                            \
+    time_t __t = time(NULL);                                                   \
+    struct tm __tm;                                                            \
+    localtime_r(&__t, &__tm);                                                  \
+    struct timespec __ts;                                                      \
+    clock_gettime(CLOCK_REALTIME, &__ts);                                      \
+    fprintf(stderr,                                                            \
+            "turf[%d] %c %d-%02d-%02d %02d:%02d:%02d:%03ld : " fmt,            \
+            getpid(),                                                          \
+            x,                                                                 \
+            __tm.tm_year + 1900,                                               \
+            __tm.tm_mon + 1,                                                   \
+            __tm.tm_mday,                                                      \
+            __tm.tm_hour,                                                      \
+            __tm.tm_min,                                                       \
+            __tm.tm_sec,                                                       \
+            __ts.tv_nsec / 1000000,                                            \
+            ##__VA_ARGS__);                                                    \
+  }
 #endif
 
 #ifdef USE_DIE_ABORT  // prevent generate coredump.

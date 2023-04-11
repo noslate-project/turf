@@ -6,8 +6,8 @@
 
 void _API cli_show_version() {
 #define TURF_V_MAJOR 0
-#define TURF_V_MINOR 0
-#define TURF_V_PATCH 6
+#define TURF_V_MINOR 22
+#define TURF_V_PATCH 1
 
 #ifndef GIT_VERSION
 #define GIT_VERSION "dev"

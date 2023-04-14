@@ -51,6 +51,7 @@ struct tf_cli {
   char* sandbox_name;  // sandbox name
   char* cwd;           // hold a path to current workdir.
   char* bundle_path;   // hold a path to bundle dir path.
+  char* config_json;   // hold a full content to the config.
   char* spec_path;     // hold a path to specification file path.
   char* file_stdout;   // write stdout to file.
   char* file_stderr;   // write stderr to file.

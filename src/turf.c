@@ -763,7 +763,13 @@ static int tf_do_start(struct tf_cli* cfg) {
     goto exit;
   }
 
-  success = tf_internal_do_start(cfg, spec);
+  int rc = tf_internal_do_start(cfg, spec);
+  if (rc < 0) {
+    error("tf_internal_do_start failed");
+    goto exit;
+  }
+
+  success = 1;
 
 exit:
   if (spec) {
@@ -1017,7 +1023,7 @@ static int tf_do_run(struct tf_cli* cfg) {
 
   rc = tf_internal_do_start(cfg, spec);
   if (rc < 0) {
-    error("tf_internal_do_create failed");
+    error("tf_internal_do_start failed");
     goto exit;
   }
 

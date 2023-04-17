@@ -257,16 +257,19 @@ static int tf_cfg_update_spec(struct tf_cli* cfg, struct oci_spec* spec) {
 }
 
 static char* last_used_runtime;
+static char* last_used_arg;
 static char* last_used_runtime_binary;
 
 int _API tf_find_binary(char** binary, const char* runtime, const char* arg) {
-  if (last_used_runtime && strcmp(last_used_runtime, runtime) == 0) {
+  if (last_used_runtime && strcmp(last_used_runtime, runtime) == 0 &&
+      strcmp(last_used_arg, arg) == 0) {
     *binary = strdup(last_used_runtime_binary);
     return 0;
   }
 
   if (last_used_runtime) {
     free(last_used_runtime);
+    free(last_used_arg);
     free(last_used_runtime_binary);
   }
 
@@ -283,6 +286,7 @@ int _API tf_find_binary(char** binary, const char* runtime, const char* arg) {
           binary, "%s/%s/%s/%s", tfd_path_runtime(), runtime, paths[i], arg);
       dprint("binary: %s", *binary);
       last_used_runtime = strdup(runtime);
+      last_used_arg = strdup(arg);
       last_used_runtime_binary = strdup(*binary);
       return 0;
     }

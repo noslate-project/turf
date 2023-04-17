@@ -203,13 +203,17 @@ spec("turf.cli") {
   }
 
   it("cli.run") {
-    cmd = "turf run";
+    cmd = "turf run --stdout /path_to/stdout.log --stderr "
+          "/path_to/stderr.log sandbox_name3";
     rc = cmd2args(cmd, &c, &v);
     check(rc == 0);
 
     rc = cli_parse(cli, c, v);
     check(rc == 0);
     check(cli->cmd == TURF_CLI_RUN);
+    check(strcmp(cli->sandbox_name, "sandbox_name3") == 0);
+    check(strcmp(cli->file_stdout, "/path_to/stdout.log") == 0);
+    check(strcmp(cli->file_stderr, "/path_to/stderr.log") == 0);
 
     cli_free(cli);
     ssfree(v);

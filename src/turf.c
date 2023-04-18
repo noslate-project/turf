@@ -256,7 +256,23 @@ static int tf_cfg_update_spec(struct tf_cli* cfg, struct oci_spec* spec) {
   return 0;
 }
 
+static char* last_used_runtime;
+static char* last_used_arg;
+static char* last_used_runtime_binary;
+
 int _API tf_find_binary(char** binary, const char* runtime, const char* arg) {
+  if (last_used_runtime && strcmp(last_used_runtime, runtime) == 0 &&
+      strcmp(last_used_arg, arg) == 0) {
+    *binary = strdup(last_used_runtime_binary);
+    return 0;
+  }
+
+  if (last_used_runtime) {
+    free(last_used_runtime);
+    free(last_used_arg);
+    free(last_used_runtime_binary);
+  }
+
   int i;
   if (arg[0] == '/') {  // realpath
     *binary = strdup(arg);
@@ -269,6 +285,9 @@ int _API tf_find_binary(char** binary, const char* runtime, const char* arg) {
       xasprintf(
           binary, "%s/%s/%s/%s", tfd_path_runtime(), runtime, paths[i], arg);
       dprint("binary: %s", *binary);
+      last_used_runtime = strdup(runtime);
+      last_used_arg = strdup(arg);
+      last_used_runtime_binary = strdup(*binary);
       return 0;
     }
   }
@@ -412,7 +431,8 @@ static int tf_do_list(struct tf_cli* cfg) {
 }
 
 // api for create a turf realm
-static int tf_do_create(struct tf_cli* cfg) {
+static int tf_internal_do_create(struct tf_cli* cfg,
+                                 struct oci_spec** out_spec) {
   const char* name = cfg->sandbox_name;
   bool success = 0;
 
@@ -431,7 +451,12 @@ static int tf_do_create(struct tf_cli* cfg) {
     shl_path2(bundle_code_path, sizeof(bundle_code_path), "./", "code");
   }
 
-  struct oci_spec* spec = oci_spec_load(bundle_config_path);
+  struct oci_spec* spec;
+  if (cfg->config_json) {
+    spec = oci_spec_loads(cfg->config_json);
+  } else {
+    spec = oci_spec_load(bundle_config_path);
+  }
   if (!spec) {
     error("spec not found");
     set_errno(EINVAL);
@@ -466,22 +491,36 @@ static int tf_do_create(struct tf_cli* cfg) {
   shl_mkdir3(tfd_path_overlay(), name, "work");
   shl_mkdir3(tfd_path_overlay(), name, "data");
 
-  // copy config
   char dest[TURF_MAX_PATH_LEN];
   shl_path2(dest, sizeof(dest), tfd_path_sandbox(), name);
-  shl_cp(bundle_config_path, dest, "config.json");
+
+  // copy config
+  if (cfg->config_json) {
+    char dest_config[TURF_MAX_PATH_LEN];
+    shl_path2(dest_config, sizeof(dest_config), dest, "config.json");
+    write_file(dest_config, cfg->config_json, strlen(cfg->config_json));
+  } else {
+    shl_cp(bundle_config_path, dest, "config.json");
+  }
 
   // copy code
   shl_path2(dest, sizeof(dest), tfd_path_overlay(), name);
   shl_cp(bundle_code_path, dest, "code");
 
   success = 1;
+  if (out_spec) {
+    *out_spec = spec;
+  }
 
 exit:
-  if (spec) {
+  if (spec && !out_spec) {
     oci_spec_free(spec);
   }
   return success ? 0 : -1;
+}
+
+static int tf_do_create(struct tf_cli* cfg) {
+  return tf_internal_do_create(cfg, NULL);
 }
 
 // delete a sandbox
@@ -521,23 +560,12 @@ exit:
   return rc;
 }
 
-// api for start turf realm
-static int tf_do_start(struct tf_cli* cfg) {
+static int tf_internal_do_start(struct tf_cli* cfg, struct oci_spec* spec) {
   int rc = -1;
   bool success = 0;
   char dest[TURF_MAX_PATH_LEN];
   struct oci_state* state = NULL;
-  struct oci_spec* spec = NULL;
   const char* name = cfg->sandbox_name;
-
-  // load spec from sanbox name
-  shl_path3(dest, sizeof(dest), tfd_path_sandbox(), name, "config.json");
-  spec = oci_spec_load(dest);
-  if (!spec) {
-    error("sandbox %s not found.", name);
-    set_errno(ENOENT);
-    goto exit;
-  }
 
   char* runtime = spec->turf.runtime;
   char* code = spec->turf.code;
@@ -720,10 +748,39 @@ exit:
     oci_state_free(state);
     state = NULL;
   }
+  return success ? 0 : -1;
+}
+
+// api for start turf realm
+static int tf_do_start(struct tf_cli* cfg) {
+  struct oci_spec* spec = NULL;
+  char dest[TURF_MAX_PATH_LEN];
+  const char* name = cfg->sandbox_name;
+  bool success = 0;
+
+  // load spec from sanbox name
+  shl_path3(dest, sizeof(dest), tfd_path_sandbox(), name, "config.json");
+  spec = oci_spec_load(dest);
+  if (!spec) {
+    error("sandbox %s not found.", name);
+    set_errno(ENOENT);
+    goto exit;
+  }
+
+  int rc = tf_internal_do_start(cfg, spec);
+  if (rc < 0) {
+    error("tf_internal_do_start failed");
+    goto exit;
+  }
+
+  success = 1;
+
+exit:
   if (spec) {
     oci_spec_free(spec);
     spec = NULL;
   }
+
   return success ? 0 : -1;
 }
 
@@ -959,8 +1016,30 @@ static int tf_do_ps(struct tf_cli* cfg) {
 
 // create and start
 static int tf_do_run(struct tf_cli* cfg) {
-  set_errno(ENOTSUP);
-  return -1;
+  struct oci_spec* spec = NULL;
+  bool success = 0;
+
+  int rc = tf_internal_do_create(cfg, &spec);
+  if (rc < 0) {
+    error("tf_internal_do_create failed");
+    goto exit;
+  }
+
+  rc = tf_internal_do_start(cfg, spec);
+  if (rc < 0) {
+    error("tf_internal_do_start failed");
+    goto exit;
+  }
+
+  success = 1;
+
+exit:
+  if (spec) {
+    oci_spec_free(spec);
+    spec = NULL;
+  }
+
+  return success ? 0 : -1;
 }
 
 // show turf information

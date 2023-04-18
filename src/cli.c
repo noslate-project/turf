@@ -221,9 +221,10 @@ static int cli_spec(tf_cli* cli, int argc, char* const argv[]) {
 }
 
 static int cli_create(tf_cli* cli, int argc, char* const argv[]) {
-  const char* so = "+hb:m:c:";
+  const char* so = "+hb:s:m:c:";
   const struct option lo[] = {{"help", no_argument, 0, 'h'},
                               {"bundle", required_argument, 0, 'b'},
+                              {"config", required_argument, 0, 's'},
                               {"mem", required_argument, 0, 'm'},
                               {"cpu", required_argument, 0, 'c'},
                               {0, 0, 0, 0}};
@@ -243,6 +244,7 @@ static int cli_create(tf_cli* cli, int argc, char* const argv[]) {
       "\n"
       "Options:\n"
       "  -b, --bundle path        path to the root of the bundle dir\n"
+      "  -s, --config json        json string of the config\n"
       "  -c, --cpu int            override limit CPU in percent\n"
       "  -m, --mem int            override limit Memory in MBytes\n";
 
@@ -255,6 +257,10 @@ static int cli_create(tf_cli* cli, int argc, char* const argv[]) {
 
       case 'b':  // bundle
         cli->bundle_path = strdup(optarg);
+        break;
+
+      case 's':  // bundle
+        cli->config_json = strdup(optarg);
         break;
 
       case 'c':  // override cpulimit
@@ -605,6 +611,110 @@ static int cli_ps(tf_cli* cli, int argc, char* const argv[]) {
 }
 
 static int cli_run(tf_cli* cli, int argc, char* const argv[]) {
+  const char* so = "+he:b:s:m:c:";
+  const struct option lo[] = {{"help", no_argument, 0, 'h'},
+                              {"bundle", required_argument, 0, 'b'},
+                              {"config", required_argument, 0, 's'},
+                              {"mem", required_argument, 0, 'm'},
+                              {"cpu", required_argument, 0, 'c'},
+                              {"stdout", required_argument, 0, 2},
+                              {"stderr", required_argument, 0, 3},
+                              {"env", required_argument, 0, 'e'},
+                              {"seed", required_argument, 0, 4},
+                              {0, 0, 0, 0}};
+
+  const char* help =
+      "\n"
+      "Usage : turf run [OPTIONS] SANDBOX_NAME\n"
+      "\n"
+      "Create a new sandbox and run it\n"
+      "\n"
+      "The command creates a new named sandbox for the bundle, the bundle is a "
+      "directory\n"
+      "with a specification file named 'config.json' and a code directory, the "
+      "spec file\n"
+      "inclues the running parameter, the code dir could be aworker\n"
+      "codebase. The name of a sandbox must be unique in turf system-wide.\n"
+      "\n"
+      "Options:\n"
+      "  -b, --bundle path        path to the root of the bundle dir\n"
+      "  -s, --config json        json string of the config\n"
+      "  -c, --cpu int            override limit CPU in percent\n"
+      "  -m, --mem int            override limit Memory in MBytes\n"
+      "      --stdout path        redirect stdout of the sandbox to path\n"
+      "      --stderr path        redirect stderr of the sandbox to path\n"
+      "  -e, --env K=V            override envrion variables in spec file\n"
+      "      --seed sandbox       warm fork seed sandbox\n";
+
+  int opt;
+  while ((opt = getopt_long(argc, argv, so, lo, NULL)) > 0) {
+    switch (opt) {
+      case 'h':  // help
+        puts(help);
+        exit(0);
+
+      case 2:  // stdout
+        cli->file_stdout = strdup(optarg);
+        break;
+
+      case 3:  // stderr
+        cli->file_stderr = strdup(optarg);
+        break;
+
+      case 4:  // warmfork
+        cli->seed_sandbox_name = strdup(optarg);
+        cli->has.seed = 1;
+        break;
+
+      case 'e':  // environ
+        if (cli->env_cnt < TURF_CLI_MAX_ENV) {
+          cli->envs[cli->env_cnt++] = strdup(optarg);
+        }
+        break;
+
+      case 'f':  // TBD: override setting.
+        cli->has.force = 1;
+        break;
+
+      case 'b':  // bundle
+        cli->bundle_path = strdup(optarg);
+        break;
+
+      case 's':  // bundle
+        cli->config_json = strdup(optarg);
+        break;
+
+      case 'c':  // override cpulimit
+        cli_get_uint32(&cli->cpulimit, optarg, 0);
+        cli->has.cpulimit = 1;
+        break;
+
+      case 'm':  // override memlimit
+        cli_get_uint32(&cli->memlimit, optarg, 0);
+        cli->has.memlimit = 1;
+        break;
+
+      default:
+        error("unknown cmd %d", opt);
+        set_errno(EINVAL);
+        return -1;
+    };
+  }
+
+  if (argc == optind) {
+    error("no sandbox name");
+    set_errno(EINVAL);
+    return -1;
+  }
+
+  const char* name = argv[optind];
+  if (cli_chk_sandbox_name(name)) {  // sandbox minium length
+    error("illegal sandbox name.");
+    set_errno(EINVAL);
+    return -1;
+  }
+  cli->sandbox_name = strdup(name);
+
   cli->cmd = TURF_CLI_RUN;
   return 0;
 }
@@ -831,6 +941,8 @@ int cli_parse_remote(tf_cli* cli, int argc, char* const argv[]) {
     rc = cli_create(cli, c, v);
   } else if (strcmp(cmd, "start") == 0) {
     rc = cli_start(cli, c, v);
+  } else if (strcmp(cmd, "run") == 0) {
+    rc = cli_run(cli, c, v);
   } else if (strcmp(cmd, "stop") == 0) {
     rc = cli_stop(cli, c, v);
   } else if (strcmp(cmd, "delete") == 0) {
@@ -909,6 +1021,11 @@ void _API cli_free(tf_cli* cli) {
   if (cli->bundle_path) {
     free(cli->bundle_path);
     cli->bundle_path = NULL;
+  }
+
+  if (cli->config_json) {
+    free(cli->config_json);
+    cli->config_json = NULL;
   }
 
   if (cli->file_stdout) {

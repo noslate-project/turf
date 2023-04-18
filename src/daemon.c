@@ -103,7 +103,7 @@ static void daemon_on_read(struct sck_loop* loop,
     dprint("msg size error(%d), from (%d)", hdr.msg_size, fd);
     goto exit;
   }
-  if (hdr.msg_size > 1024) {
+  if (hdr.msg_size > 4096) {
     dprint("msg size too large (%d), from (%d)", hdr.msg_size, fd);
     goto exit;
   }
